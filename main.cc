@@ -11,7 +11,7 @@ namespace myDemo {
     napi_value SetParent(napi_env env, napi_callback_info info) {
 
         // 获取参数
-        // 参数只有一个，值为win32窗口句柄（16进制字符串，如"0x005207D2"）
+        // 参数只有一个，值为win32窗口句柄（16进制格式字符串，如"0x005207D2"）
         size_t argc = 1;
         napi_value argv[1];
         napi_get_cb_info(env, info, &argc, argv, 0, 0);
