@@ -8,6 +8,24 @@ using namespace std;
 // C++插件(N-API实现)
 namespace myDemo {
 
+    HWND desktopIconWnd = NULL;
+
+    BOOL CALLBACK enumWindowProc(HWND hwnd, LPARAM lParam)
+    {
+        HWND shellDllWnd = FindWindowExA(hwnd, NULL, "SHELLDLL_DefView", NULL);
+        if (shellDllWnd)
+        {
+            HWND sysWnd = FindWindowExA(shellDllWnd, NULL, "SysListView32", NULL);
+            if (sysWnd)
+            {
+                desktopIconWnd = shellDllWnd;
+                return FALSE;
+            }
+        }
+
+        return TRUE;
+    }
+
     napi_value SetParent(napi_env env, napi_callback_info info) {
 
         // 获取参数
@@ -41,29 +59,15 @@ namespace myDemo {
         }
 
         // 寻找桌面背景窗口句柄（注意不是桌面窗口,可使用visual studio提供的spy++工具查看窗口层级）
-        HWND p = NULL;
-        HWND t = NULL;
-        do
-        {
-            p = FindWindowExA(NULL, p, "WorkerW", NULL);
-            if (p != 0)
-            {
-                HWND c = FindWindowExA(p, NULL, "SHELLDLL_DefView", NULL);
-                if (c != 0)
-                {
-                    t = c;
-                }
-            }
-        } while (p != 0);
-
-        if (t == 0)
+        EnumWindows(enumWindowProc, 0);
+        if (desktopIconWnd == 0)
         {
             status = napi_create_string_utf8(env, "parent window is not found", NAPI_AUTO_LENGTH, &temp);
             if (status != napi_ok) return nullptr;
             return temp;
         }
 
-        HWND res = SetParent(hWnd, t);
+        HWND res = SetParent(hWnd, desktopIconWnd);
 
         if (res == 0)
         {
